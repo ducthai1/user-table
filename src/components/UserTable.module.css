@@ -1,0 +1,31 @@
+.container {
+	padding: 0 20px;
+}
+
+.tableUser {
+	width: 100%;
+	text-align: left;
+	border-spacing: 0;
+	border-bottom: 2px solid #e5e5e5;
+}
+
+.headTable {
+	font-weight: bold;
+}
+
+.titleHeadTable,
+.contentBodyTable {
+	padding: 20px 10px;
+}
+
+.bodyTable {
+	background-color: #F5FAFA;
+}
+
+.status {
+	font-size: 0.75rem;
+	padding: 0.25rem 0.75rem;
+	border: 1px solid #9ca3af;
+	border-radius: 9999px;
+	color: #4b5563;
+}
