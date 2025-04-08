@@ -4,14 +4,18 @@ import { generateSampleUsers } from '../data/sampleUsers'
 import { useEffect, useRef, useState } from 'react'
 import { formatBalance, formatDate, formatTitleDate } from '../utils/format'
 const UserTable = () => {
-	const ROW_PER_PAGE = 10
+	const ROWS_PER_PAGE = 11
+	const COUNTED_USER = 50
+
+	const [currentPage, setCurrentPage] = useState(1)
 	const [data, setData] = useState<TUser[]>([])
+	const [selected, setSelected] = useState<Set<string>>(new Set())
 	const [editingId, setEditingId] = useState('')
 	const [editingName, setEditingName] = useState('')
 	const refName = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
-		setData(generateSampleUsers(50))
+		setData(generateSampleUsers(COUNTED_USER))
 	}, [])
 
 	useEffect(() => {
@@ -19,6 +23,19 @@ const UserTable = () => {
 			refName.current.focus()
 		}
 	}, [editingId])
+
+	const totalPages = Math.ceil(data.length / ROWS_PER_PAGE)
+
+	const toggleSelected = () => {
+		const isAllSelected = data.slice(currentPage - 1, currentPage + ROWS_PER_PAGE - 1).every(user => selected.has(user.id))
+
+		if (isAllSelected) {
+			setSelected(new Set())
+		} else {
+			const allIds = data.slice(currentPage - 1, currentPage + ROWS_PER_PAGE - 1).map(user => user.id)
+			setSelected(new Set(allIds))
+		}
+	}
 
 	const handleEdit = (id: string, name: string) => {
 		setEditingId(id)
@@ -35,9 +52,11 @@ const UserTable = () => {
 	}
 
 	const handleDelete = (id: string) => {
-		setData(prev =>
-			prev.filter(user => user.id !== id)
-		)
+		if (window.confirm("Are you sure want to delete this row?")) {
+			setData(prev =>
+				prev.filter(user => user.id !== id)
+			)
+		}
 	}
 
 	return (
@@ -46,7 +65,11 @@ const UserTable = () => {
 				<thead>
 					<tr className={styles.headTable}>
 						<th className={styles.titleHeadTable}>
-							<input type='checkbox' />
+							<input
+								type='checkbox'
+								onChange={toggleSelected}
+								checked={data.slice(0, currentPage + ROWS_PER_PAGE - 1).every(user => selected.has(user.id))}
+							/>
 							Name
 						</th>
 						<th className={styles.titleHeadTable}>Balance ($)</th>
@@ -60,7 +83,19 @@ const UserTable = () => {
 					{data.map((user) =>
 						<tr key={user.id} className={styles.bodyTable}>
 							<td className={`${styles.contentBodyTable} ${styles.contentName}`}>
-								<input type='checkbox' />
+								<input type='checkbox' checked={selected.has(user.id)}
+									onChange={() => {
+										setSelected(prev => {
+											const newSet = new Set(prev)
+											if (newSet.has(user.id)) {
+												newSet.delete(user.id)
+											} else {
+												newSet.add(user.id)
+											}
+											return newSet
+										})
+									}} />
+								<span className="checkmark"></span>
 								<div className={styles.nameWrapper}>
 									{editingId === user.id ?
 										<input ref={refName} type='text' value={editingName} className={styles.inputEdit}
@@ -76,7 +111,7 @@ const UserTable = () => {
 								{formatBalance(user.balance)}
 							</td>
 							<td className={styles.contentBodyTable}>
-								<a href={`mailto:${user.email}`}>
+								<a className={styles.contentEmail} title={`mailto:${user.email}`} href={`mailto:${user.email}`}>
 									{user.email}
 								</a>
 							</td>
@@ -112,9 +147,38 @@ const UserTable = () => {
 								</div>
 							</td>
 						</tr>
-					).slice(0, ROW_PER_PAGE)}
+					).slice(currentPage - 1, currentPage + ROWS_PER_PAGE - 1)}
 				</tbody>
 			</table>
+
+			<div className={styles.pagination}>
+				<span className={styles.paginationInfo}>{data.length} results</span>
+				<div className={styles.paginationControls}>
+					<button
+						className={styles.pageBtn}
+						onClick={() => setCurrentPage(page => page - 1)}
+						disabled={currentPage === 1}
+					>
+						&lt;
+					</button>
+					{[...Array(totalPages)].map((_, index) => (
+						<button
+							key={index + 1}
+							className={`${styles.pageBtn} ${currentPage === index + 1 ? styles.activePage : ""}`}
+							onClick={() => setCurrentPage(index + 1)}
+						>
+							{index + 1}
+						</button>
+					))}
+					<button
+						className={styles.pageBtn}
+						onClick={() => setCurrentPage(page => page + 1)}
+						disabled={currentPage === totalPages}
+					>
+						&gt;
+					</button>
+				</div>
+			</div>
 		</div>)
 }
 

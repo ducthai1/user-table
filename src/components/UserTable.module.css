@@ -1,3 +1,8 @@
+input[type="checkbox"] {
+	accent-color: rgb(90, 94, 110);
+	cursor: pointer;
+}
+
 .container {
 	padding: 0 20px;
 }
@@ -29,6 +34,11 @@
 
 .contentName {
 	width: 20%;
+}
+
+.contentEmail {
+	color: #000;
+	text-decoration: none;
 }
 
 .status {
@@ -70,4 +80,18 @@
 
 .btnAction {
 	margin-left: 10px;
+	cursor: pointer;
+}
+
+.pagination {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 20px;
+}
+
+.paginationInfo {}
+
+.paginationControls {
+	background-color: red;
+	width: 200px;
 }
