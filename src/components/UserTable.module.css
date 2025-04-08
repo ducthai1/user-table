@@ -13,6 +13,11 @@
 	font-weight: bold;
 }
 
+.titleAction,
+.contentAction {
+	text-align: right;
+}
+
 .titleHeadTable,
 .contentBodyTable {
 	padding: 20px 10px;
@@ -22,10 +27,47 @@
 	background-color: #F5FAFA;
 }
 
+.contentName {
+	width: 20%;
+}
+
 .status {
 	font-size: 0.75rem;
 	padding: 0.25rem 0.75rem;
 	border: 1px solid #9ca3af;
 	border-radius: 9999px;
 	color: #4b5563;
+}
+
+.nameWrapper {
+	display: inline-block;
+}
+
+.inputEdit {
+	padding: 0 0 0 5px;
+	font-size: 16px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	width: 150%;
+}
+
+.inputEdit:focus {
+	outline: none;
+	box-shadow: none;
+	border-color: #ccc;
+}
+
+.actionWrapper {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+}
+
+.placeholder {
+	width: 17px;
+	display: inline-block;
+}
+
+.btnAction {
+	margin-left: 10px;
 }
