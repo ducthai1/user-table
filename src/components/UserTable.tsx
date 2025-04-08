@@ -3,10 +3,13 @@ import { TUser } from "../types/User"
 import { generateSampleUsers } from '../data/sampleUsers'
 import { useEffect, useRef, useState } from 'react'
 import { formatBalance, formatDate, formatTitleDate } from '../utils/format'
-const UserTable = () => {
-	const ROWS_PER_PAGE = 11
-	const COUNTED_USER = 50
+import { getVisiblePages } from '../utils/visiblepage'
 
+const ROWS_PER_PAGE = 10
+
+const UserTable = () => {
+	const COUNTED_USER = 106
+	const [rowsPerPage, setRowsPerPage] = useState(ROWS_PER_PAGE)
 	const [currentPage, setCurrentPage] = useState(1)
 	const [data, setData] = useState<TUser[]>([])
 	const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -24,17 +27,21 @@ const UserTable = () => {
 		}
 	}, [editingId])
 
-	const totalPages = Math.ceil(data.length / ROWS_PER_PAGE)
+	const totalPages = Math.ceil(data.length / rowsPerPage)
+
+	const currentPageUsers = data.slice(rowsPerPage * (currentPage - 1), rowsPerPage * currentPage)
 
 	const toggleSelected = () => {
-		const isAllSelected = data.slice(currentPage - 1, currentPage + ROWS_PER_PAGE - 1).every(user => selected.has(user.id))
-
-		if (isAllSelected) {
-			setSelected(new Set())
-		} else {
-			const allIds = data.slice(currentPage - 1, currentPage + ROWS_PER_PAGE - 1).map(user => user.id)
-			setSelected(new Set(allIds))
-		}
+		const isAllSelected = currentPageUsers.every(user => selected.has(user.id))
+		setSelected(prev => {
+			const newSet = new Set(prev)
+			if (isAllSelected) {
+				currentPageUsers.forEach(user => newSet.delete(user.id))
+			} else {
+				currentPageUsers.forEach(user => newSet.add(user.id))
+			}
+			return newSet
+		})
 	}
 
 	const handleEdit = (id: string, name: string) => {
@@ -68,7 +75,7 @@ const UserTable = () => {
 							<input
 								type='checkbox'
 								onChange={toggleSelected}
-								checked={data.slice(0, currentPage + ROWS_PER_PAGE - 1).every(user => selected.has(user.id))}
+								checked={currentPageUsers.every(user => selected.has(user.id))}
 							/>
 							Name
 						</th>
@@ -80,7 +87,7 @@ const UserTable = () => {
 					</tr>
 				</thead>
 				<tbody>
-					{data.map((user) =>
+					{currentPageUsers.map((user) =>
 						<tr key={user.id} className={styles.bodyTable}>
 							<td className={`${styles.contentBodyTable} ${styles.contentName}`}>
 								<input type='checkbox' checked={selected.has(user.id)}
@@ -147,12 +154,26 @@ const UserTable = () => {
 								</div>
 							</td>
 						</tr>
-					).slice(currentPage - 1, currentPage + ROWS_PER_PAGE - 1)}
+					)}
 				</tbody>
 			</table>
 
 			<div className={styles.pagination}>
 				<span className={styles.paginationInfo}>{data.length} results</span>
+				<div>Rows per page: <select
+					name="rows"
+					id="rows"
+					value={rowsPerPage}
+					onChange={(e) => {
+						setRowsPerPage(Number(e.target.value))
+						setCurrentPage(1)
+					}}
+				>
+					<option value={10}>10</option>
+					<option value={20}>20</option>
+					<option value={30}>30</option>
+				</select>
+				</div>
 				<div className={styles.paginationControls}>
 					<button
 						className={styles.pageBtn}
@@ -161,15 +182,21 @@ const UserTable = () => {
 					>
 						&lt;
 					</button>
-					{[...Array(totalPages)].map((_, index) => (
-						<button
-							key={index + 1}
-							className={`${styles.pageBtn} ${currentPage === index + 1 ? styles.activePage : ""}`}
-							onClick={() => setCurrentPage(index + 1)}
-						>
-							{index + 1}
-						</button>
-					))}
+
+					{getVisiblePages(currentPage, totalPages).map((page, index) =>
+						page === '...' ? (
+							<span key={`ellipsis-${index}`} className={styles.pageEllipsis}>...</span>
+						) : (
+							<button
+								key={page}
+								className={`${styles.pageBtn} ${currentPage === page ? styles.activePage : ""}`}
+								onClick={() => setCurrentPage(Number(page))}
+							>
+								{page}
+							</button>
+						)
+					)}
+
 					<button
 						className={styles.pageBtn}
 						onClick={() => setCurrentPage(page => page + 1)}
@@ -177,7 +204,9 @@ const UserTable = () => {
 					>
 						&gt;
 					</button>
+
 				</div>
+
 			</div>
 		</div>)
 }
